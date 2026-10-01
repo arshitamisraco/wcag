@@ -4,7 +4,7 @@ const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.postho
 const posthogAssetsHost = posthogHost.replace(".i.posthog.com", "-assets.i.posthog.com");
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["@sparticuz/chromium", "playwright-core"],
+  serverExternalPackages: ["@sparticuz/chromium", "playwright-core", "axe-core"],
   // The sparticuz package reads its brotli binaries via relative paths at runtime,
   // so file tracing cannot see them. Include them explicitly for the scan route.
   outputFileTracingIncludes: {
