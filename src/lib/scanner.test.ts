@@ -23,8 +23,14 @@ const FIXTURE = `<!doctype html>
 </body>
 </html>`;
 
-const server = createServer((_req, res) => {
-  res.writeHead(200, { "content-type": "text/html" });
+const CSP_PATH = "/csp";
+const server = createServer((req, res) => {
+  const headers: Record<string, string> = { "content-type": "text/html" };
+  if (req.url === CSP_PATH) {
+    headers["content-security-policy"] =
+      "script-src 'self'; default-src 'self'; style-src 'unsafe-inline'";
+  }
+  res.writeHead(200, headers);
   res.end(FIXTURE);
 });
 let baseUrl = "";
@@ -54,6 +60,17 @@ describe("scanUrl", { skip: !existsSync(process.env.CHROMIUM_EXECUTABLE_PATH!) }
     assert.ok(img.wcagTags.every((t) => t.startsWith("wcag")));
     assert.ok(img.wcagTags.includes("wcag111"));
     assert.ok(img.selector.length > 0);
+  });
+});
+
+describe("scanUrl with a restrictive Content-Security-Policy", { skip: !existsSync(process.env.CHROMIUM_EXECUTABLE_PATH!) }, () => {
+  it("still finds the planted violations", { timeout: 60000 }, async () => {
+    const result = await scanUrl(new URL(CSP_PATH, baseUrl).toString());
+    const ids = result.violations.map((v) => v.id);
+    for (const id of ["image-alt", "button-name", "html-has-lang", "color-contrast"]) {
+      assert.ok(ids.includes(id), `expected ${id} in ${ids.join(",")}`);
+    }
+    assert.equal(result.title, "Fixture");
   });
 });
 

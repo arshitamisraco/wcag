@@ -71,6 +71,7 @@ export async function scanUrl(url: string): Promise<ScanResult> {
     const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },
       userAgent: USER_AGENT,
+      bypassCSP: true,
     });
     const page = await context.newPage();
     try {
@@ -85,6 +86,19 @@ export async function scanUrl(url: string): Promise<ScanResult> {
     const title = await page.title();
 
     await page.addScriptTag({ content: axe.source });
+    const axeLoaded = () =>
+      page.evaluate(() => typeof (window as any).axe !== "undefined"); // eslint-disable-line @typescript-eslint/no-explicit-any
+    let hasAxe = await axeLoaded();
+    if (!hasAxe) {
+      // Fallback: evaluate the source as a string inside the page.
+      await page.evaluate(axe.source);
+      hasAxe = await axeLoaded();
+    }
+    if (!hasAxe) {
+      throw new Error(
+        "Could not inject axe-core into the page (blocked by the page's Content-Security-Policy)",
+      );
+    }
     const results = (await page.evaluate(() =>
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).axe.run(document, {
