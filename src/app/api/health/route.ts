@@ -18,7 +18,10 @@ export async function GET() {
   try {
     const e = optionalEnv();
     ai = Boolean(e.ANTHROPIC_API_KEY);
-    inngest = Boolean(e.INNGEST_EVENT_KEY);
+    inngest = Boolean(
+      e.INNGEST_EVENT_KEY ||
+        Object.keys(process.env).some((k) => k.endsWith("_INNGEST_EVENT_KEY")),
+    );
   } catch {
     // invalid env: leave both false
   }
