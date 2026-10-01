@@ -33,7 +33,7 @@ Browser --POST /api/scans {url}--> Next route --inngest.send("scan/requested")--
 ## Local development
 
 1. `pnpm install`
-2. Create a Neon Postgres database. Copy `.env.example` to `.env.local` and fill in `DATABASE_URL` and `ANTHROPIC_API_KEY`.
+2. Create a Neon Postgres database. Copy `.env.example` to `.env.local` and fill in `DATABASE_URL` and `ANTHROPIC_API_KEY`, and set `INNGEST_DEV=1` (required locally: Inngest SDK v4 otherwise fails `inngest.send` with "We couldn't find an event key").
 3. `pnpm db:push` (or `pnpm db:migrate` to apply the SQL in `drizzle/`). `drizzle.config.ts` and `scripts/eval.ts` load `.env.local` (then `.env` as a fallback) via `dotenv`; variables already set in your shell are not overridden.
 4. Make a Chromium available: set `CHROMIUM_EXECUTABLE_PATH` to a Chrome/Chromium binary (for example after `npx playwright install chromium`). If unset, `/opt/pw-browsers/chromium` is used when present. On Vercel the bundled `@sparticuz/chromium` is used instead.
 5. Terminal 1: `pnpm dev`
@@ -53,6 +53,7 @@ Scripts: `pnpm dev`, `pnpm build`, `pnpm typecheck`, `pnpm lint`, `pnpm test`, `
 | `ANTHROPIC_MODEL` | no | `claude-opus-5-5` | Model for explanations |
 | `MAX_AI_ISSUES` | no | `30` | Max issues per scan sent to Claude (most severe first) |
 | `INNGEST_EVENT_KEY` / `INNGEST_SIGNING_KEY` | prod | | Set by the Inngest Vercel integration; optional in dev |
+| `INNGEST_DEV` | local dev | | Set to `1` locally so the SDK talks to the Inngest dev server. Must be unset in production |
 | `NEXT_PUBLIC_POSTHOG_KEY` | no | | PostHog project key. Unset disables analytics entirely |
 | `NEXT_PUBLIC_POSTHOG_HOST` | no | `https://us.i.posthog.com` | PostHog ingestion host (EU: `https://eu.i.posthog.com`) |
 | `CHROMIUM_EXECUTABLE_PATH` | no | | Local Chromium override |

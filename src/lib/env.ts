@@ -13,6 +13,7 @@ const envSchema = z.object({
   ),
   INNGEST_EVENT_KEY: opt(z.string()),
   INNGEST_SIGNING_KEY: opt(z.string()),
+  INNGEST_DEV: opt(z.string()),
   NEXT_PUBLIC_POSTHOG_KEY: opt(z.string()),
   NEXT_PUBLIC_POSTHOG_HOST: z.preprocess(
     emptyToUndefined,
