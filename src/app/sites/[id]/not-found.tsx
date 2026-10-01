@@ -1,12 +1,17 @@
-import Link from "next/link";
+import { DottedBlob } from "@/components/doodles";
+import { Button } from "@/components/ui";
 
 export default function NotFound() {
   return (
-    <div>
-      <h1 className="text-2xl font-bold">Site not found</h1>
-      <p className="mt-2">
-        <Link href="/" className="text-blue-800 underline">Back to home</Link>
-      </p>
+    <div className="mx-auto flex max-w-lg flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-ink bg-paper px-6 py-10 text-center">
+      <DottedBlob className="h-28 w-28" />
+      <h1 className="font-display text-4xl font-bold text-ink">Site not found</h1>
+      <p className="max-w-prose text-ink-2">This site may have been deleted or the link is incomplete.</p>
+      <div className="mt-2">
+        <Button href="/" variant="primary">
+          Back to home
+        </Button>
+      </div>
     </div>
   );
 }

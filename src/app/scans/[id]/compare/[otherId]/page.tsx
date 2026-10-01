@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Squiggle, Starburst } from "@/components/doodles";
+import { FadeIn } from "@/components/motion/fade-in";
+import { Float } from "@/components/motion/float";
+import { Stagger, StaggerItem } from "@/components/motion/stagger";
 import { TrackOnMount } from "@/components/track-on-mount";
-import { StatusBadge } from "@/components/ui/badge";
+import { ImpactBadge, StatusBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardLabel } from "@/components/ui/card";
+import { DataTable, Td, Th, Tr } from "@/components/ui/data-table";
+import { Pill } from "@/components/ui/pill";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Stat } from "@/components/ui/stat";
+import type { Tone } from "@/components/ui/tones";
+import { TextLink } from "@/components/ui/text-link";
 import { compareScans, type CompareIssue } from "@/lib/compare";
-import { formatDateTime, impactClass } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { getScanHeader, getScanIssuesForCompare, type ScanHeader } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -13,62 +24,95 @@ export const metadata: Metadata = { title: "Compare scans | AI Accessibility Aud
 
 function Message({ title, children, siteId }: { title: string; children: React.ReactNode; siteId?: string }) {
   return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <p className="text-gray-800">{children}</p>
-      <p>
-        <Link href={siteId ? `/sites/${siteId}` : "/"} className="text-blue-800 underline">
+    <div className="mx-auto max-w-lg space-y-4 py-8 text-center">
+      <h1 className="font-display text-3xl font-bold">{title}</h1>
+      <p className="text-ink-2">{children}</p>
+      <div>
+        <Button href={siteId ? `/sites/${siteId}` : "/"} variant="ghost">
           {siteId ? "Back to site history" : "Back to home"}
-        </Link>
-      </p>
+        </Button>
+      </div>
     </div>
   );
 }
 
 function ScanCard({ role, scan }: { role: string; scan: ScanHeader }) {
+  const when = formatDateTime(scan.createdAt);
   return (
-    <div className="rounded-lg border border-gray-300 p-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-800">{role}</h2>
-      <p className="mt-1 font-semibold">{formatDateTime(scan.createdAt)}</p>
-      <p className="mt-1 text-sm text-gray-900">
-        {scan.summary?.violations ?? 0} violations ·{" "}
-        <Link href={`/scans/${scan.id}`} className="text-blue-800 underline">
-          View scan<span className="sr-only"> from {formatDateTime(scan.createdAt)}</span>
-        </Link>
+    <Card>
+      <p>
+        <CardLabel>{role}</CardLabel>
       </p>
-    </div>
+      <p className="mt-1 font-display text-xl font-bold">{when}</p>
+      <p className="mt-2 text-sm text-ink">
+        {scan.summary?.violations ?? 0} violations ·{" "}
+        <TextLink href={`/scans/${scan.id}`}>
+          View scan<span className="sr-only"> from {when}</span>
+        </TextLink>
+      </p>
+    </Card>
   );
 }
 
 const BUCKETS = {
-  fixed: { title: "Fixed", sign: "−", card: "border-green-700 bg-green-50 text-green-950" },
-  new: { title: "New", sign: "+", card: "border-red-700 bg-red-50 text-red-950" },
-  persisting: { title: "Persisting", sign: "=", card: "border-gray-500 bg-gray-50 text-gray-900" },
-} as const;
+  fixed: { title: "Fixed", sign: "−", tone: "green-soft" },
+  new: { title: "New", sign: "+", tone: "orange" },
+  persisting: { title: "Persisting", sign: "=", tone: "paper" },
+} as const satisfies Record<string, { title: string; sign: string; tone: Tone }>;
+
+function Chevron() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+      className="shrink-0 transition-transform duration-200 group-open:rotate-180"
+    >
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
 
 function IssueList({ issues }: { issues: CompareIssue[] }) {
-  if (issues.length === 0) return <p className="mt-2 text-sm text-gray-800">None.</p>;
+  if (issues.length === 0) return <p className="mt-3 text-ink-2">None.</p>;
   return (
-    <ul className="mt-3 space-y-3">
+    <Stagger as="ul" className="mt-3 space-y-3">
       {issues.map((i) => (
-        <li key={`${i.ruleId}::${i.selector}`} className="rounded-md border border-gray-200 p-3 text-sm">
+        <StaggerItem
+          as="li"
+          key={`${i.ruleId}::${i.selector}`}
+          className="rounded-xl border-2 border-ink bg-cream p-4 text-sm"
+        >
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-semibold">{i.help}</span>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${impactClass(i.impact)}`}>
-              {i.impact ?? "unknown"}
-            </span>
-            <a href={i.helpUrl} target="_blank" rel="noreferrer noopener" className="text-blue-800 underline">
-              Learn more<span className="sr-only"> about {i.ruleId} (opens in new tab)</span>
-            </a>
+            <span className="font-bold">{i.help}</span>
+            <ImpactBadge impact={i.impact} />
+            <TextLink href={i.helpUrl} external>
+              Learn more<span className="sr-only"> about {i.ruleId}</span>
+            </TextLink>
           </div>
-          <p className="mt-1">
-            <span className="font-semibold">Selector: </span>
-            <code className="break-all font-mono text-xs">{i.selector}</code>
+          <p className="mt-2">
+            <span className="font-bold">Selector: </span>
+            <code className="break-all rounded bg-sand px-1 font-mono text-sm">{i.selector}</code>
           </p>
-        </li>
+        </StaggerItem>
       ))}
-    </ul>
+    </Stagger>
   );
+}
+
+function Zero() {
+  return <span className="text-ink-2">0</span>;
+}
+
+function Count({ n }: { n: number }) {
+  return n === 0 ? <Zero /> : <span className="font-display font-bold">{n}</span>;
 }
 
 export default async function ComparePage({ params }: PageProps<"/scans/[id]/compare/[otherId]">) {
@@ -103,7 +147,7 @@ export default async function ComparePage({ params }: PageProps<"/scans/[id]/com
   const result = compareScans(baseIssues, targetIssues);
 
   return (
-    <div className="space-y-8">
+    <div className="relative -mx-2 space-y-8 overflow-x-clip px-2 pb-2">
       <TrackOnMount
         event="compare_viewed"
         props={{
@@ -114,88 +158,126 @@ export default async function ComparePage({ params }: PageProps<"/scans/[id]/com
           persisting: result.counts.persisting,
         }}
       />
-      <div>
-        <Link href={`/sites/${base.siteId}`} className="text-sm text-blue-800 underline">
+      <nav aria-label="Breadcrumb">
+        <TextLink href={`/sites/${base.siteId}`} className="text-sm">
+          <span aria-hidden="true">← </span>
           Back to site history
-        </Link>
-        <h1 className="mt-2 text-3xl font-bold">Scan comparison</h1>
-      </div>
+        </TextLink>
+      </nav>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <FadeIn className="relative">
+        <div aria-hidden="true" className="pointer-events-none absolute right-2 top-0 hidden md:block">
+          <Float amplitude={6} duration={5} rotate={6}>
+            <Starburst className="h-16 w-16" />
+          </Float>
+        </div>
+        <p className="text-xs font-bold uppercase tracking-wide text-ink-2">Compare</p>
+        <h1 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Scan comparison</h1>
+      </FadeIn>
+
+      <div className="grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <ScanCard role="Base (older)" scan={base} />
+        <div aria-hidden="true" className="hidden sm:block">
+          <Squiggle className="h-8 w-16 text-orange" />
+        </div>
         <ScanCard role="Target (newer)" scan={target} />
       </div>
 
-      <section aria-labelledby="summary-heading">
-        <h2 id="summary-heading" className="text-2xl font-semibold">Summary</h2>
-        <dl className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section aria-labelledby="summary-heading" className="space-y-4">
+        <SectionHeading id="summary-heading">Summary</SectionHeading>
+        <dl className="grid gap-4 sm:grid-cols-3">
           {(["fixed", "new", "persisting"] as const).map((k) => (
-            <div key={k} className={`rounded-lg border p-4 ${BUCKETS[k].card}`}>
-              <dt className="text-sm font-medium">{BUCKETS[k].title}</dt>
-              <dd className="mt-1 text-3xl font-bold">
-                <span aria-hidden="true">{BUCKETS[k].sign} </span>
-                {result.counts[k]}
-              </dd>
-            </div>
+            <Stat
+              key={k}
+              tone={BUCKETS[k].tone}
+              value={result.counts[k]}
+              label={
+                <>
+                  <span className="text-ink">{BUCKETS[k].title}</span>
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full border-2 border-ink bg-paper font-display text-lg font-bold normal-case tracking-normal text-ink"
+                  >
+                    {BUCKETS[k].sign}
+                  </span>
+                </>
+              }
+            />
           ))}
         </dl>
-        <p className="mt-2 text-sm text-gray-800">
+        <p className="text-ink-2">
           {result.counts.baseTotal} issues in the base scan, {result.counts.targetTotal} in the target scan.
         </p>
       </section>
 
-      <section aria-labelledby="rules-heading">
-        <h2 id="rules-heading" className="text-2xl font-semibold">By rule</h2>
+      <section aria-labelledby="rules-heading" className="space-y-4">
+        <SectionHeading id="rules-heading">By rule</SectionHeading>
         {result.byRule.length === 0 ? (
-          <p className="mt-3 text-gray-800">No violations in either scan.</p>
+          <p className="text-ink-2">No violations in either scan.</p>
         ) : (
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <caption className="sr-only">Changes per accessibility rule</caption>
-              <thead>
-                <tr className="border-b border-gray-300 text-gray-800">
-                  <th scope="col" className="py-2 pr-4 font-semibold">Rule</th>
-                  <th scope="col" className="py-2 pr-4 font-semibold">Impact</th>
-                  <th scope="col" className="py-2 pr-4 font-semibold">Fixed</th>
-                  <th scope="col" className="py-2 pr-4 font-semibold">New</th>
-                  <th scope="col" className="py-2 pr-4 font-semibold">Persisting</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.byRule.map((r) => (
-                  <tr key={r.ruleId} className="border-b border-gray-200">
-                    <th scope="row" className="py-2 pr-4 font-normal">
-                      {r.help}{" "}
-                      <a href={r.helpUrl} target="_blank" rel="noreferrer noopener" className="text-blue-800 underline">
-                        Learn more<span className="sr-only"> about {r.ruleId} (opens in new tab)</span>
-                      </a>
-                    </th>
-                    <td className="py-2 pr-4">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${impactClass(r.impact)}`}>
-                        {r.impact ?? "unknown"}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4">{r.fixed}</td>
-                    <td className="py-2 pr-4">{r.new}</td>
-                    <td className="py-2 pr-4">{r.persisting}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable caption="Changes per accessibility rule" label="Changes by rule">
+            <thead>
+              <tr>
+                <Th>Rule</Th>
+                <Th>Impact</Th>
+                <Th>Fixed</Th>
+                <Th>New</Th>
+                <Th>Persisting</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.byRule.map((r) => (
+                <Tr key={r.ruleId} className="last:[&>th]:border-b-0">
+                  <th scope="row" className="min-w-56 border-b border-sand px-4 py-3 text-left align-top font-normal">
+                    {r.help}{" "}
+                    <TextLink href={r.helpUrl} external>
+                      Learn more<span className="sr-only"> about {r.ruleId}</span>
+                    </TextLink>
+                  </th>
+                  <Td>
+                    <ImpactBadge impact={r.impact} />
+                  </Td>
+                  <Td>
+                    <Count n={r.fixed} />
+                  </Td>
+                  <Td>
+                    <Count n={r.new} />
+                  </Td>
+                  <Td>
+                    <Count n={r.persisting} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+          </DataTable>
         )}
       </section>
 
-      <section aria-labelledby="details-heading" className="space-y-3">
-        <h2 id="details-heading" className="text-2xl font-semibold">Issue details</h2>
-        {(["fixed", "new", "persisting"] as const).map((k) => (
-          <details key={k} className="rounded-lg border border-gray-300 p-4" open={k === "new" && result.new.length > 0}>
-            <summary className="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900">
-              {BUCKETS[k].title} ({result.counts[k]})
-            </summary>
-            <IssueList issues={result[k]} />
-          </details>
-        ))}
+      <section aria-labelledby="details-heading" className="space-y-4">
+        <SectionHeading id="details-heading">Issue details</SectionHeading>
+        <div className="space-y-4">
+          {(["fixed", "new", "persisting"] as const).map((k) => (
+            <details
+              key={k}
+              className="group rounded-2xl border-2 border-ink bg-paper shadow-[4px_4px_0_0_var(--ink)]"
+              open={k === "new" && result.new.length > 0}
+            >
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-2xl px-5 py-4 font-display text-lg font-bold [&::-webkit-details-marker]:hidden">
+                <span className="flex flex-wrap items-center gap-2">
+                  {BUCKETS[k].title}
+                  <Pill>
+                    {result.counts[k]}
+                    <span className="sr-only"> {result.counts[k] === 1 ? "issue" : "issues"}</span>
+                  </Pill>
+                </span>
+                <Chevron />
+              </summary>
+              <div className="px-5 pb-5">
+                <IssueList issues={result[k]} />
+              </div>
+            </details>
+          ))}
+        </div>
       </section>
     </div>
   );

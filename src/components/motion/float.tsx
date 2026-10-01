@@ -1,10 +1,14 @@
 "use client";
 
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 
 /**
  * Ambient loop for DECORATIVE, aria-hidden doodles only. Never wrap real content
  * in Float: continuously moving content fails WCAG 2.2.2 (Pause, Stop, Hide).
+ *
+ * Always renders the same element on server and client (no hydration mismatch).
+ * Under reduced motion, MotionConfig reducedMotion="user" skips the transform
+ * animation and the doodle simply sits still.
  */
 export function Float({
   children,
@@ -21,13 +25,10 @@ export function Float({
   rotate?: number;
   delay?: number;
 }) {
-  const reduced = useReducedMotion();
-  if (reduced) return <div className={className}>{children}</div>;
   return (
     <motion.div
       className={className}
-      initial={{ y: -amplitude, rotate: -rotate }}
-      animate={{ y: amplitude, rotate }}
+      animate={{ y: [-amplitude, amplitude], rotate: [-rotate, rotate] }}
       transition={{
         duration,
         delay,
