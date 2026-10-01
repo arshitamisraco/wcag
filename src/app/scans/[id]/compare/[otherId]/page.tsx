@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TrackOnMount } from "@/components/track-on-mount";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { compareScans, type CompareIssue } from "@/lib/compare";
 import { formatDateTime, impactClass } from "@/lib/format";
 import { getScanHeader, getScanIssuesForCompare, type ScanHeader } from "@/lib/queries";

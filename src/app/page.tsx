@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ScanForm } from "@/components/scan-form";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { timeAgo } from "@/lib/format";
 import { recentScans } from "@/lib/queries";
 

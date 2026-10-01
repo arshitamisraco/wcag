@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { track } from "@/lib/analytics";
+import { Button } from "@/components/ui/button";
 
 function hostOf(input: string): string {
   try {
@@ -45,10 +46,10 @@ export function ScanForm() {
 
   return (
     <form onSubmit={onSubmit} className="w-full max-w-xl" noValidate>
-      <label htmlFor="url" className="block text-sm font-semibold text-gray-900">
+      <label htmlFor="url" className="block text-sm font-bold text-ink">
         Page URL
       </label>
-      <div className="mt-1 flex flex-col gap-2 sm:flex-row">
+      <div className="mt-2 flex flex-col gap-3 sm:flex-row">
         <input
           id="url"
           name="url"
@@ -61,17 +62,13 @@ export function ScanForm() {
           onChange={(e) => setUrl(e.target.value)}
           aria-describedby={error ? "url-error" : undefined}
           aria-invalid={error ? true : undefined}
-          className="min-w-0 flex-1 rounded-md border border-gray-600 px-3 py-2 text-gray-900 placeholder:text-gray-600"
+          className="min-h-11 min-w-0 flex-1 rounded-xl border-2 border-ink bg-paper px-4 py-2.5 text-ink shadow-[4px_4px_0_0_var(--ink)] placeholder:text-ink-2"
         />
-        <button
-          type="submit"
-          disabled={busy || !url.trim()}
-          className="rounded-md bg-blue-800 px-5 py-2 font-semibold text-white hover:bg-blue-900 disabled:cursor-not-allowed disabled:bg-gray-600"
-        >
+        <Button type="submit" size="lg" disabled={busy || !url.trim()}>
           {busy ? "Starting..." : "Scan"}
-        </button>
+        </Button>
       </div>
-      <p id="url-error" role="alert" className="mt-2 text-sm font-medium text-red-800">
+      <p id="url-error" role="alert" className="mt-2 text-sm font-bold text-red-deep">
         {error}
       </p>
     </form>

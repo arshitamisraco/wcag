@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton } from "@/components/copy-button";
 import { ScanPoller } from "@/components/scan-poller";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge } from "@/components/ui/badge";
 import type { Issue } from "@/db/schema";
 import { IMPACTS, formatDateTime, impactClass } from "@/lib/format";
 import { TrackOnMount } from "@/components/track-on-mount";

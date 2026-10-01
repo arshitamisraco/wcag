@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Delta } from "@/components/delta";
 import { RescanButton } from "@/components/rescan-button";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge } from "@/components/ui/badge";
 import { IMPACTS, formatDateTime } from "@/lib/format";
 import { getSiteWithScans } from "@/lib/queries";
 

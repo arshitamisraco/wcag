@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { track } from "@/lib/analytics";
+import { Button } from "@/components/ui/button";
 
 export function RescanButton({ siteId, label = "Re-scan now" }: { siteId: string; label?: string }) {
   const router = useRouter();
@@ -30,15 +31,10 @@ export function RescanButton({ siteId, label = "Re-scan now" }: { siteId: string
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={busy}
-        className="rounded-md bg-blue-800 px-4 py-2 font-semibold text-white hover:bg-blue-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-900 disabled:cursor-not-allowed disabled:bg-gray-600"
-      >
+      <Button type="button" onClick={onClick} disabled={busy}>
         {busy ? "Starting..." : label}
-      </button>
-      <p role="alert" className="mt-1 text-sm font-medium text-red-800">
+      </Button>
+      <p role="alert" className="mt-2 text-sm font-bold text-red-deep">
         {error}
       </p>
     </div>
