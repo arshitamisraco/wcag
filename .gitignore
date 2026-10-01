@@ -42,3 +42,7 @@ next-env.d.ts
 
 # keep the documented env template
 !.env.example
+
+# eval results (per-run JSON is local; history.csv is tracked)
+eval/results/*.json
+!eval/results/history.csv

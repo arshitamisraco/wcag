@@ -2,6 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { track } from "@/lib/analytics";
+
+function hostOf(input: string): string {
+  try {
+    const t = input.trim();
+    return new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(t) ? t : `https://${t}`).hostname;
+  } catch {
+    return "unknown";
+  }
+}
 
 export function ScanForm() {
   const router = useRouter();
@@ -20,7 +30,12 @@ export function ScanForm() {
         body: JSON.stringify({ url }),
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 429 && data.scanId) {
+        router.push(`/scans/${data.scanId}`);
+        return;
+      }
       if (!res.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
+      track("scan_submitted", { url_host: hostOf(url) });
       router.push(`/scans/${data.scanId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

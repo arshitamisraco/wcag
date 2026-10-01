@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db, sites } from "@/db";
 import { recentScans } from "@/lib/queries";
-import { enqueueScan } from "@/lib/scans";
+import { activeScanResponseBody, enqueueScan } from "@/lib/scans";
 import { InvalidUrlError, assertScannableUrl, normalizeUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -32,8 +32,14 @@ export async function POST(req: Request) {
     .values({ url, hostname })
     .onConflictDoUpdate({ target: sites.url, set: { hostname } })
     .returning({ id: sites.id });
-  const { scanId } = await enqueueScan(site.id);
-  return NextResponse.json({ scanId, siteId: site.id }, { status: 202 });
+  const result = await enqueueScan(site.id);
+  if (!result.ok) {
+    return NextResponse.json(
+      { ...activeScanResponseBody(result.scanId), siteId: site.id },
+      { status: 429 },
+    );
+  }
+  return NextResponse.json({ scanId: result.scanId, siteId: site.id }, { status: 202 });
 }
 
 export async function GET(req: Request) {

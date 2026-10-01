@@ -6,6 +6,7 @@ import { ScanPoller } from "@/components/scan-poller";
 import { StatusBadge } from "@/components/status-badge";
 import type { Issue } from "@/db/schema";
 import { IMPACTS, formatDateTime, impactClass } from "@/lib/format";
+import { TrackOnMount } from "@/components/track-on-mount";
 import { Delta } from "@/components/delta";
 import { RescanButton } from "@/components/rescan-button";
 import { getScanDetail, getSiteWithScans } from "@/lib/queries";
@@ -88,6 +89,10 @@ export default async function ScanPage({ params }: PageProps<"/scans/[id]">) {
 
   return (
     <div className="space-y-8">
+      <TrackOnMount
+        event="scan_viewed"
+        props={{ scan_id: scan.id, status: scan.status, violations: summary?.violations ?? 0 }}
+      />
       <div>
         <Link href="/" className="text-sm text-blue-800 underline">
           Back to all scans

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackOnMount } from "@/components/track-on-mount";
 import { StatusBadge } from "@/components/status-badge";
 import { compareScans, type CompareIssue } from "@/lib/compare";
 import { formatDateTime, impactClass } from "@/lib/format";
@@ -103,6 +104,16 @@ export default async function ComparePage({ params }: PageProps<"/scans/[id]/com
 
   return (
     <div className="space-y-8">
+      <TrackOnMount
+        event="compare_viewed"
+        props={{
+          base_scan_id: base.id,
+          target_scan_id: target.id,
+          fixed: result.counts.fixed,
+          new: result.counts.new,
+          persisting: result.counts.persisting,
+        }}
+      />
       <div>
         <Link href={`/sites/${base.siteId}`} className="text-sm text-blue-800 underline">
           Back to site history

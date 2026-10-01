@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PostHogProvider } from "@/components/posthog-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-white text-gray-900">
+        <PostHogProvider>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-10 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:text-blue-800"
@@ -31,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="border-t border-gray-200 py-4 text-center text-sm text-gray-700">
           Powered by axe-core and Claude
         </footer>
+        </PostHogProvider>
       </body>
     </html>
   );
