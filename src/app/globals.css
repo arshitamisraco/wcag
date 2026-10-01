@@ -1,24 +1,112 @@
 @import "tailwindcss";
 
+/*
+  Design tokens for the "doodle" theme.
+  Every text/background pairing used in the UI is contrast-checked (see docs/DESIGN.md).
+  Colors are intentionally flat and saturated; depth comes from bold ink outlines and
+  hard offset shadows, never from gradients or blur.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
+  --cream: #fbf6ec;
+  --paper: #fffdf7;
+  --ink: #1b1b1f;
+  --ink-2: #3a3a42;
+  --sky: #4db7f0;
+  --sky-deep: #0a4f96;
+  --orange: #f2693a;
+  --orange-deep: #a33a12;
+  --yellow: #ffc72c;
+  --yellow-soft: #ffe48a;
+  --green: #1f6e4f;
+  --green-deep: #174f39;
+  --green-soft: #bfe8cf;
+  --pink: #f7a8c4;
+  --pink-soft: #fbd3e1;
+  --red: #e63946;
+  --red-deep: #a8142a;
+  --teal: #1fa87a;
+  --sand: #e9e3d6;
+
+  --background: var(--cream);
+  --foreground: var(--ink);
 }
 
 @theme inline {
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-sky: var(--sky);
+  --color-sky-deep: var(--sky-deep);
+  --color-orange: var(--orange);
+  --color-orange-deep: var(--orange-deep);
+  --color-yellow: var(--yellow);
+  --color-yellow-soft: var(--yellow-soft);
+  --color-green: var(--green);
+  --color-green-deep: var(--green-deep);
+  --color-green-soft: var(--green-soft);
+  --color-pink: var(--pink);
+  --color-pink-soft: var(--pink-soft);
+  --color-red: var(--red);
+  --color-red-deep: var(--red-deep);
+  --color-teal: var(--teal);
+  --color-sand: var(--sand);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fredoka), var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-blob: 1.25rem;
+  --shadow-offset: 4px 4px 0 0 var(--ink);
+  --shadow-offset-sm: 2px 2px 0 0 var(--ink);
+  --shadow-offset-lg: 8px 8px 0 0 var(--ink);
+}
+
+html {
+  background: var(--background);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
 }
 
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+}
+
+/* Visible focus on every background: ink ring with a yellow halo. */
 :focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 3px var(--cream), 0 0 0 6px var(--yellow);
+  border-radius: 0.25rem;
+}
+
+::selection {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+/* Reduced motion: motion/react handles JS animations via MotionConfig; this covers CSS. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

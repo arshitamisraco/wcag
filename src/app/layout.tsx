@@ -1,7 +1,24 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Fredoka, Nunito } from "next/font/google";
 import { PostHogProvider } from "@/components/posthog-provider";
+import { MotionProvider } from "@/components/motion/motion-provider";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
+
+const fredoka = Fredoka({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-fredoka",
+  display: "swap",
+});
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+  variable: "--font-nunito",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "AI Accessibility Auditor",
@@ -11,28 +28,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col bg-white text-gray-900">
+    <html lang="en" className={`h-full antialiased ${fredoka.variable} ${nunito.variable}`}>
+      <body className="min-h-full flex flex-col bg-cream text-ink">
         <PostHogProvider>
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-10 focus:rounded focus:bg-white focus:px-3 focus:py-2 focus:text-blue-800"
-        >
-          Skip to content
-        </a>
-        <header className="border-b border-gray-200">
-          <div className="mx-auto flex max-w-5xl items-center px-4 py-3">
-            <Link href="/" className="rounded text-lg font-semibold text-gray-900">
-              AI Accessibility Auditor
-            </Link>
-          </div>
-        </header>
-        <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-          {children}
-        </main>
-        <footer className="border-t border-gray-200 py-4 text-center text-sm text-gray-700">
-          Powered by axe-core and Claude
-        </footer>
+          <MotionProvider>
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-full focus:border-2 focus:border-ink focus:bg-yellow focus:px-4 focus:py-2 focus:font-bold focus:text-ink"
+            >
+              Skip to content
+            </a>
+            <SiteHeader />
+            <main id="main" className="relative mx-auto w-full max-w-6xl flex-1 px-4 py-10 sm:px-6">
+              {children}
+            </main>
+            <SiteFooter />
+          </MotionProvider>
         </PostHogProvider>
       </body>
     </html>
