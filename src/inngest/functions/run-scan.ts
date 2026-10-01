@@ -21,19 +21,32 @@ async function markFailed(scanId: string, error: string) {
     .where(eq(scans.id, scanId));
 }
 
-/** Runs a step body; any failure marks the scan failed, then rethrows. */
-async function guarded<T>(scanId: string, fn: () => Promise<T>): Promise<T> {
+const RETRIES = 1;
+
+type AttemptInfo = { attempt: number; retries: number };
+
+/**
+ * Runs a step body and rethrows failures. The scan is marked failed only when
+ * the error is non-retriable or this is the final attempt, so the UI does not
+ * show "failed" while Inngest is still going to retry.
+ */
+async function guarded<T>(
+  scanId: string,
+  { attempt, retries }: AttemptInfo,
+  fn: () => Promise<T>,
+): Promise<T> {
   try {
     return await fn();
   } catch (e) {
-    try {
-      await markFailed(scanId, message(e));
-    } catch {
-      // ignore secondary failure; original error is what matters
+    const nonRetriable = e instanceof InvalidUrlError || e instanceof NonRetriableError;
+    if (nonRetriable || attempt >= retries) {
+      try {
+        await markFailed(scanId, message(e));
+      } catch {
+        // ignore secondary failure; original error is what matters
+      }
     }
-    if (e instanceof InvalidUrlError || e instanceof NonRetriableError) {
-      throw new NonRetriableError(message(e));
-    }
+    if (nonRetriable) throw new NonRetriableError(message(e));
     throw e;
   }
 }
@@ -43,13 +56,14 @@ export const runScan = inngest.createFunction(
     id: "run-scan",
     triggers: [{ event: "scan/requested" }],
     concurrency: { limit: 2 },
-    retries: 1,
+    retries: RETRIES,
   },
-  async ({ event, step }) => {
+  async ({ event, step, attempt }) => {
+    const info: AttemptInfo = { attempt, retries: RETRIES };
     const scanId = (event.data as { scanId: string }).scanId;
 
     await step.run("mark-running", () =>
-      guarded(scanId, async () => {
+      guarded(scanId, info, async () => {
         await db()
           .update(scans)
           .set({ status: "running", startedAt: new Date(), error: null })
@@ -58,7 +72,7 @@ export const runScan = inngest.createFunction(
     );
 
     const scanned = await step.run("scan", () =>
-      guarded(scanId, async () => {
+      guarded(scanId, info, async () => {
         const [row] = await db()
           .select({ url: sites.url })
           .from(scans)
@@ -74,7 +88,7 @@ export const runScan = inngest.createFunction(
     );
 
     await step.run("store-issues", () =>
-      guarded(scanId, async () => {
+      guarded(scanId, info, async () => {
         await db().delete(issues).where(eq(issues.scanId, scanId));
         const rows = scanned.issues.map((i) => ({
           ...i,
@@ -92,7 +106,7 @@ export const runScan = inngest.createFunction(
     );
 
     await step.run("explain", () =>
-      guarded(scanId, async () => {
+      guarded(scanId, info, async () => {
         if (!aiConfigured()) {
           await db()
             .update(issues)
@@ -138,7 +152,7 @@ export const runScan = inngest.createFunction(
     );
 
     await step.run("mark-completed", () =>
-      guarded(scanId, async () => {
+      guarded(scanId, info, async () => {
         await db()
           .update(scans)
           .set({ status: "completed", finishedAt: new Date() })

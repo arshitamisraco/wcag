@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { db, scans, sites } from "@/db";
+import { db, sites } from "@/db";
 import { recentScans } from "@/lib/queries";
-import { inngest } from "@/inngest/client";
+import { enqueueScan } from "@/lib/scans";
 import { InvalidUrlError, assertScannableUrl, normalizeUrl } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
@@ -32,13 +32,8 @@ export async function POST(req: Request) {
     .values({ url, hostname })
     .onConflictDoUpdate({ target: sites.url, set: { hostname } })
     .returning({ id: sites.id });
-  const [scan] = await db()
-    .insert(scans)
-    .values({ siteId: site.id })
-    .returning({ id: scans.id });
-
-  await inngest.send({ name: "scan/requested", data: { scanId: scan.id } });
-  return NextResponse.json({ scanId: scan.id, siteId: site.id }, { status: 202 });
+  const { scanId } = await enqueueScan(site.id);
+  return NextResponse.json({ scanId, siteId: site.id }, { status: 202 });
 }
 
 export async function GET(req: Request) {

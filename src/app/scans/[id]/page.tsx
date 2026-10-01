@@ -6,7 +6,9 @@ import { ScanPoller } from "@/components/scan-poller";
 import { StatusBadge } from "@/components/status-badge";
 import type { Issue } from "@/db/schema";
 import { IMPACTS, formatDateTime, impactClass } from "@/lib/format";
-import { getScanDetail } from "@/lib/queries";
+import { Delta } from "@/components/delta";
+import { RescanButton } from "@/components/rescan-button";
+import { getScanDetail, getSiteWithScans } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +77,15 @@ export default async function ScanPage({ params }: PageProps<"/scans/[id]">) {
   const summary = scan.summary;
   const groups = group(issues);
 
+  let previous: { id: string; violations: number } | null = null;
+  if (scan.status === "completed" && summary) {
+    const history = await getSiteWithScans(site.id).catch(() => null);
+    const older = history?.scans.find(
+      (s) => s.id !== scan.id && s.status === "completed" && s.summary && s.createdAt < scan.createdAt,
+    );
+    if (older?.summary) previous = { id: older.id, violations: older.summary.violations };
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -88,6 +99,20 @@ export default async function ScanPage({ params }: PageProps<"/scans/[id]">) {
           {scan.startedAt ? <span>Started {formatDateTime(scan.startedAt)}</span> : null}
           {scan.finishedAt ? <span>Finished {formatDateTime(scan.finishedAt)}</span> : null}
         </p>
+        <div className="mt-4 flex flex-wrap items-start gap-x-6 gap-y-3">
+          <Link href={`/sites/${site.id}`} className="py-2 text-blue-800 underline">
+            View site history
+          </Link>
+          <RescanButton siteId={site.id} label="Re-scan" />
+        </div>
+        {previous && summary ? (
+          <p className="mt-3">
+            <Delta current={summary.violations} previous={previous.violations} />{" "}
+            <Link href={`/scans/${scan.id}/compare/${previous.id}`} className="text-sm text-blue-800 underline">
+              Compare with previous scan
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       {active ? <ScanPoller scanId={scan.id} initialStatus={scan.status} /> : null}

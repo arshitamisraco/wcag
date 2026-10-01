@@ -40,3 +40,57 @@ export async function getScanDetail(id: string) {
 }
 
 export type ScanDetail = NonNullable<Awaited<ReturnType<typeof getScanDetail>>>;
+
+export async function getSiteWithScans(siteId: string) {
+  if (!UUID_RE.test(siteId)) return null;
+  const [site] = await db().select().from(sites).where(eq(sites.id, siteId));
+  if (!site) return null;
+  const rows = await db()
+    .select({
+      id: scans.id,
+      status: scans.status,
+      createdAt: scans.createdAt,
+      finishedAt: scans.finishedAt,
+      error: scans.error,
+      summary: scans.summary,
+    })
+    .from(scans)
+    .where(eq(scans.siteId, siteId))
+    .orderBy(desc(scans.createdAt));
+  return { site, scans: rows };
+}
+
+export type SiteWithScans = NonNullable<Awaited<ReturnType<typeof getSiteWithScans>>>;
+
+export async function getScanIssuesForCompare(scanId: string) {
+  return db()
+    .select({
+      ruleId: issues.ruleId,
+      impact: issues.impact,
+      selector: issues.selector,
+      help: issues.help,
+      helpUrl: issues.helpUrl,
+    })
+    .from(issues)
+    .where(eq(issues.scanId, scanId))
+    .orderBy(asc(IMPACT_ORDER_SQL), asc(issues.ruleId), asc(issues.selector));
+}
+
+/** Scan header (no issues), or null when the id is malformed or unknown. */
+export async function getScanHeader(id: string) {
+  if (!UUID_RE.test(id)) return null;
+  const [row] = await db()
+    .select({
+      id: scans.id,
+      siteId: scans.siteId,
+      status: scans.status,
+      createdAt: scans.createdAt,
+      finishedAt: scans.finishedAt,
+      summary: scans.summary,
+    })
+    .from(scans)
+    .where(eq(scans.id, id));
+  return row ?? null;
+}
+
+export type ScanHeader = NonNullable<Awaited<ReturnType<typeof getScanHeader>>>;

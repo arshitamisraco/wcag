@@ -54,7 +54,7 @@ export default async function Home() {
                   <tr key={s.id} className="border-b border-gray-200">
                     <td className="max-w-xs truncate py-2 pr-4">
                       <Link
-                        href={`/scans/${s.id}`}
+                        href={`/sites/${s.siteId}`}
                         className="text-blue-800 underline hover:text-blue-950"
                       >
                         {s.url}
@@ -62,7 +62,12 @@ export default async function Home() {
                     </td>
                     <td className="py-2 pr-4"><StatusBadge status={s.status} /></td>
                     <td className="py-2 pr-4">{s.summary ? s.summary.violations : "-"}</td>
-                    <td className="py-2 pr-4 text-gray-800">{timeAgo(s.createdAt)}</td>
+                    <td className="py-2 pr-4 text-gray-800">
+                      <Link href={`/scans/${s.id}`} className="text-blue-800 underline hover:text-blue-950">
+                        {timeAgo(s.createdAt)}
+                        <span className="sr-only"> (view scan)</span>
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
