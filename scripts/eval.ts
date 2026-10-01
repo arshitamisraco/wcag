@@ -2,6 +2,7 @@
  * Eval harness: for each fixture, scan -> AI fixes -> apply -> re-scan -> measure.
  * Usage: pnpm eval [--fixture <name>] [--dry-run] [--max-issues N]
  */
+import "./load-env";
 import { existsSync } from "node:fs";
 import { appendFile, copyFile, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";

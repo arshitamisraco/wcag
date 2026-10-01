@@ -34,7 +34,7 @@ Browser --POST /api/scans {url}--> Next route --inngest.send("scan/requested")--
 
 1. `pnpm install`
 2. Create a Neon Postgres database. Copy `.env.example` to `.env.local` and fill in `DATABASE_URL` and `ANTHROPIC_API_KEY`.
-3. `pnpm db:push` (or `pnpm db:migrate` to apply the SQL in `drizzle/`). `drizzle-kit` reads `DATABASE_URL` from the environment, so run `export $(grep -v '^#' .env.local | xargs)` first or prefix the command.
+3. `pnpm db:push` (or `pnpm db:migrate` to apply the SQL in `drizzle/`). `drizzle.config.ts` and `scripts/eval.ts` load `.env.local` (then `.env` as a fallback) via `dotenv`; variables already set in your shell are not overridden.
 4. Make a Chromium available: set `CHROMIUM_EXECUTABLE_PATH` to a Chrome/Chromium binary (for example after `npx playwright install chromium`). If unset, `/opt/pw-browsers/chromium` is used when present. On Vercel the bundled `@sparticuz/chromium` is used instead.
 5. Terminal 1: `pnpm dev`
 6. Terminal 2: `npx inngest-cli@latest dev -u http://localhost:3000/api/inngest`
